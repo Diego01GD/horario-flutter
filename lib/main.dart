@@ -321,17 +321,35 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1A1B36),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(m.nombre, style: TextStyle(color: m.color, fontWeight: FontWeight.bold)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("Docente: ${m.maestro}"),
-            const SizedBox(height: 10),
-            ...m.sesiones.map((s) => Text("• ${s.dia}: ${s.horaInicio.toInt()}:00 - ${s.horaFin.toInt()}:00 (${s.aula})")),
-          ],
+        content: SizedBox(
+          // --- AQUÍ MODIFICAS EL TAMAÑO ---
+          width: MediaQuery.of(context).size.width * 0.8, // 80% del ancho de la pantalla
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Docente: ${m.maestro}", style: const TextStyle(fontSize: 18)), // Texto más grande
+              const SizedBox(height: 20),
+              const Text("Horarios:", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white70)),
+              const SizedBox(height: 10),
+              ...m.sesiones.map((s) => Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Text(
+                  "• ${s.dia}: ${s.horaInicio.toInt()}:00 - ${s.horaFin.toInt()}:00 (${s.aula})",
+                  style: const TextStyle(fontSize: 16),
+                ),
+              )),
+            ],
+          ),
         ),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cerrar"))],
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context), 
+            child: const Text("Cerrar", style: TextStyle(fontSize: 16))
+          )
+        ],
       ),
     );
   }
