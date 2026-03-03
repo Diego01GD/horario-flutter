@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:math';
 
-void main() {
-  runApp(const MiHorarioApp());
-}
+void main() => runApp(const MiHorarioApp());
 
 class MiHorarioApp extends StatelessWidget {
   const MiHorarioApp({super.key});
@@ -17,11 +14,6 @@ class MiHorarioApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFF0D0E20),
         cardColor: const Color(0xFF2D1C7F),
         primaryColor: const Color(0xFF7546E8),
-        colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF7546E8),
-          secondary: Color(0xFFC8B3F6),
-          surface: Color(0xFF2D1C7F),
-        ),
         useMaterial3: true,
       ),
       home: const PantallaPrincipal(),
@@ -31,345 +23,319 @@ class MiHorarioApp extends StatelessWidget {
 
 class Sesion {
   String dia;
-  TimeOfDay inicio;
-  TimeOfDay fin;
+  double horaInicio; 
+  double horaFin;
   String aula;
-
-  Sesion({required this.dia, required this.inicio, required this.fin, required this.aula});
-
-  Sesion clone() => Sesion(dia: dia, inicio: inicio, fin: fin, aula: aula);
+  Sesion({required this.dia, required this.horaInicio, required this.horaFin, required this.aula});
 }
 
 class Materia {
-  String id;
-  String nombre;
-  String maestro;
-  String notas;
+  String nombre, maestro;
   Color color;
   List<Sesion> sesiones;
-
-  Materia({
-    required this.id,
-    required this.nombre,
-    this.maestro = '',
-    this.notas = '',
-    required this.color,
-    required this.sesiones,
-  });
-
-  Materia clone() => Materia(
-    id: id,
-    nombre: nombre,
-    maestro: maestro,
-    notas: notas,
-    color: color,
-    sesiones: sesiones.map((s) => s.clone()).toList(),
-  );
+  Materia({required this.nombre, required this.maestro, required this.color, required this.sesiones});
 }
 
 class PantallaPrincipal extends StatefulWidget {
   const PantallaPrincipal({super.key});
-
   @override
   State<PantallaPrincipal> createState() => _PantallaPrincipalState();
 }
 
 class _PantallaPrincipalState extends State<PantallaPrincipal> {
-  List<Materia> misMaterias = [];
-  bool esPrimeraVez = true;
-  bool esVistaSemanal = false;
-  String diaFiltrado = _obtenerDiaActual();
+  final double altoHora = 80.0; 
+  final double anchoDia = 150.0; // Ancho optimizado para legibilidad móvil
+  final double anchoHoraCol = 65.0;
+  final int horaInicioTabla = 7; 
+  final int totalHoras = 13; 
 
-  static String _obtenerDiaActual() {
-    List<String> dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
-    int index = DateTime.now().weekday - 1;
-    return (index >= 0 && index < 6) ? dias[index] : dias[0];
+  bool esVistaSemanal = true;
+  final List<String> dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+  
+  late PageController _pageController;
+  late List<Materia> misMaterias;
+
+  @override
+  void initState() {
+    super.initState();
+    // Inicializar controlador en el día actual (si es fin de semana, por defecto Lunes)
+    int initialPage = DateTime.now().weekday - 1;
+    if (initialPage > 4) initialPage = 0;
+    _pageController = PageController(initialPage: initialPage);
+
+    misMaterias = [
+      Materia(
+        nombre: "TALLER DE INVESTIGACIÓN I",
+        maestro: "Mtro. Armando Cetina",
+        color: const Color(0xFFE91E63),
+        sesiones: [
+          Sesion(dia: "Martes", horaInicio: 10.0, horaFin: 12.0, aula: "H12"),
+          Sesion(dia: "Jueves", horaInicio: 11.0, horaFin: 13.0, aula: "LCOM4"),
+        ],
+      ),
+      Materia(
+        nombre: "DESARROLLO DE BACK-END",
+        maestro: "Mtro. RODRIGO FIDEL GAXIOLA SOSA",
+        color: const Color(0xFF00BCD4),
+        sesiones: [
+          Sesion(dia: "Miércoles", horaInicio: 9.0, horaFin: 11.0, aula: "H8"),
+          Sesion(dia: "Viernes", horaInicio: 10.0, horaFin: 13.0, aula: "H10"),
+        ],
+      ),
+      Materia(
+        nombre: "PROGRAMACIÓN DE MÓVILES",
+        maestro: "Mtra. SARA NELLY MORENO CIMÉ",
+        color: const Color(0xFFFF9800),
+        sesiones: [
+          Sesion(dia: "Martes", horaInicio: 14.0, horaFin: 17.0, aula: "H2"),
+          Sesion(dia: "Jueves", horaInicio: 14.0, horaFin: 16.0, aula: "H8"),
+        ],
+      ),
+      Materia(
+        nombre: "GESTIÓN ÁGIL DE PROYECTOS",
+        maestro: "Mtro. MARIO RENÁN MORENO SABIDO",
+        color: const Color(0xFF4CAF50),
+        sesiones: [
+          Sesion(dia: "Miércoles", horaInicio: 13.0, horaFin: 16.0, aula: "H11"),
+          Sesion(dia: "Viernes", horaInicio: 13.0, horaFin: 15.0, aula: "H11"),
+        ],
+      ),
+      Materia(
+        nombre: "ADMINISTRACIÓN DE REDES",
+        maestro: "Mtro. BRAULIO AZAAF PAZ GARCIA",
+        color: const Color(0xFF7546E8),
+        sesiones: [
+          Sesion(dia: "Lunes", horaInicio: 16.0, horaFin: 18.0, aula: "H2"),
+          Sesion(dia: "Viernes", horaInicio: 15.0, horaFin: 17.0, aula: "H2"),
+        ],
+      ),
+    ];
   }
 
-  void _guardarMateria(Materia mForm) {
-    setState(() {
-      int index = misMaterias.indexWhere((m) => m.id == mForm.id);
-      if (index >= 0) {
-        misMaterias[index] = mForm;
-      } else {
-        misMaterias.add(mForm);
-      }
-      esPrimeraVez = false;
-    });
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _irAHoy() {
+    int hoy = DateTime.now().weekday - 1;
+    if (hoy > 4) hoy = 0;
+    if (!esVistaSemanal) {
+      _pageController.animateToPage(hoy, 
+        duration: const Duration(milliseconds: 400), 
+        curve: Curves.easeInOut);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (esPrimeraVez && misMaterias.isEmpty) {
-      return _buildBienvenida();
-    }
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(esVistaSemanal ? "Horario Semanal" : "Horario de Hoy"),
+        title: Text(esVistaSemanal ? "Horario Semanal" : "Vista Diaria"),
         centerTitle: true,
+        backgroundColor: const Color(0xFF0D0E20),
+        elevation: 0,
         actions: [
           IconButton(
-            icon: Icon(esVistaSemanal ? Icons.calendar_view_day : Icons.grid_view_rounded),
+            icon: Icon(esVistaSemanal ? Icons.calendar_view_day : Icons.grid_on),
             onPressed: () => setState(() => esVistaSemanal = !esVistaSemanal),
           )
         ],
-        bottom: esVistaSemanal ? null : PreferredSize(
-          preferredSize: const Size.fromHeight(60),
-          child: _selectorDeDias(),
-        ),
       ),
-      body: esVistaSemanal ? _buildVistaSemanal() : _buildListaHorario(),
-      floatingActionButton: FloatingActionButton(
+      body: esVistaSemanal ? _buildVistaSemanal() : _buildVistaDiariaSwipe(),
+      floatingActionButton: !esVistaSemanal ? FloatingActionButton.extended(
+        onPressed: _irAHoy,
         backgroundColor: const Color(0xFF7546E8),
-        onPressed: () => _abrirFormularioCentrado(context),
-        child: const Icon(Icons.add, color: Colors.white, size: 30),
-      ),
+        icon: const Icon(Icons.today, color: Colors.white),
+        label: const Text("Hoy", style: TextStyle(color: Colors.white)),
+      ) : null,
     );
   }
 
-  Widget _buildBienvenida() {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.school_rounded, size: 100, color: Color(0xFF7546E8)),
-            const SizedBox(height: 20),
-            const Text("¡Bienvenido!", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-            const Text("Crea tu primer horario para comenzar"),
-            const SizedBox(height: 40),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7546E8)),
-              onPressed: () => _abrirFormularioCentrado(context),
-              child: const Text("Empezar", style: TextStyle(color: Colors.white)),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _selectorDeDias() {
-    List<String> dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
-    return SizedBox(
-      height: 60,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: dias.map((d) => Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: ChoiceChip(
-            label: Text(d),
-            selected: diaFiltrado == d,
-            onSelected: (s) => setState(() => diaFiltrado = d),
-          ),
-        )).toList(),
-      ),
-    );
-  }
-
-  Widget _buildListaHorario() {
-    List<Widget> cards = [];
-    for (var m in misMaterias) {
-      for (var s in m.sesiones) {
-        if (s.dia == diaFiltrado) {
-          cards.add(_tarjetaMateria(m, s));
-        }
-      }
-    }
-    return cards.isEmpty 
-      ? const Center(child: Text("No hay clases hoy")) 
-      : ListView(children: cards);
-  }
-
-  Widget _tarjetaMateria(Materia m, Sesion s) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-      color: m.color.withOpacity(0.9),
-      child: ListTile(
-        title: Text(m.nombre, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text("Aula: ${s.aula}\n${s.inicio.format(context)} - ${s.fin.format(context)}"),
-        trailing: const Icon(Icons.info_outline),
-        onTap: () => _mostrarDetalles(context, m),
-      ),
-    );
-  }
-
+  // --- VISTA SEMANAL ---
   Widget _buildVistaSemanal() {
-    List<String> dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
+    return InteractiveViewer(
+      constrained: false,
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: dias.map((d) => Container(
-          width: MediaQuery.of(context).size.width * 0.45,
-          margin: const EdgeInsets.all(5),
-          decoration: BoxDecoration(color: const Color(0xFF2D1C7F).withOpacity(0.2), borderRadius: BorderRadius.circular(10)),
-          child: Column(
+        children: [
+          Row(
             children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(color: Color(0xFF7546E8), borderRadius: BorderRadius.vertical(top: Radius.circular(10))),
-                child: Text(d, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)),
-              ),
-              ..._obtenerMiniCards(d),
+              SizedBox(width: anchoHoraCol),
+              ...dias.map((d) => Container(
+                    width: anchoDia,
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2D1C7F).withValues(alpha: 0.3),
+                      border: Border(
+                        bottom: BorderSide(color: Colors.white.withValues(alpha: 0.2), width: 2),
+                        right: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                      ),
+                    ),
+                    child: Text(d, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFC8B3F6))),
+                  )),
             ],
           ),
-        )).toList(),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildColumnaHoras(),
+              ...dias.map((d) => _buildColumnaDia(d)),
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  List<Widget> _obtenerMiniCards(String dia) {
-    List<Widget> list = [];
+  Widget _buildColumnaHoras() {
+    return Column(
+      children: List.generate(totalHoras, (i) {
+        return Container(
+          height: altoHora,
+          width: anchoHoraCol,
+          padding: const EdgeInsets.only(right: 12),
+          alignment: Alignment.topRight,
+          decoration: BoxDecoration(
+            border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.15), width: 1)),
+          ),
+          child: Text("${horaInicioTabla + i}:00", style: const TextStyle(fontSize: 12, color: Colors.white70)),
+        );
+      }),
+    );
+  }
+
+  Widget _buildColumnaDia(String dia) {
+    return Container(
+      width: anchoDia,
+      height: altoHora * totalHoras,
+      decoration: BoxDecoration(
+        border: Border(right: BorderSide(color: Colors.white.withValues(alpha: 0.15), width: 1)),
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          ...List.generate(totalHoras, (i) => Positioned(
+            top: i * altoHora,
+            left: 0,
+            right: 0,
+            child: Container(height: 1, color: Colors.white.withValues(alpha: 0.15)),
+          )),
+          ..._obtenerWidgetsMaterias(dia),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _obtenerWidgetsMaterias(String dia) {
+    List<Widget> lista = [];
     for (var m in misMaterias) {
       for (var s in m.sesiones) {
         if (s.dia == dia) {
-          list.add(GestureDetector(
-            onTap: () => _mostrarDetalles(context, m),
-            child: Container(
-              margin: const EdgeInsets.all(4),
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(color: m.color.withOpacity(0.8), borderRadius: BorderRadius.circular(5)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(m.nombre, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
-                  Text("${s.inicio.format(context)} - ${s.aula}", style: const TextStyle(fontSize: 9)),
-                ],
+          double top = (s.horaInicio - horaInicioTabla) * altoHora;
+          double height = (s.horaFin - s.horaInicio) * altoHora;
+
+          lista.add(Positioned(
+            top: top,
+            left: 4,
+            right: 4,
+            height: height,
+            child: GestureDetector(
+              onTap: () => _mostrarDetalles(m),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: m.color.withValues(alpha: 0.85),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(m.nombre, 
+                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold), 
+                        textAlign: TextAlign.center),
+                    const SizedBox(height: 4),
+                    Text(s.aula, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold)),
+                  ],
+                ),
               ),
             ),
           ));
         }
       }
     }
-    return list;
+    return lista;
   }
 
-  void _mostrarDetalles(BuildContext context, Materia m) {
+  // --- VISTA DIARIA CON SWIPE ---
+  Widget _buildVistaDiariaSwipe() {
+    return PageView.builder(
+      controller: _pageController,
+      itemCount: dias.length,
+      itemBuilder: (context, index) {
+        String dia = dias[index];
+        List<Map<String, dynamic>> materiasDia = [];
+        for (var m in misMaterias) {
+          for (var s in m.sesiones) {
+            if (s.dia == dia) materiasDia.add({'m': m, 's': s});
+          }
+        }
+        materiasDia.sort((a, b) => a['s'].horaInicio.compareTo(b['s'].horaInicio));
+
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Text(dia, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFFC8B3F6))),
+            ),
+            Expanded(
+              child: materiasDia.isEmpty 
+              ? const Center(child: Text("Sin clases este día"))
+              : ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: materiasDia.length,
+                  itemBuilder: (context, i) {
+                    final m = materiasDia[i]['m'] as Materia;
+                    final s = materiasDia[i]['s'] as Sesion;
+                    return Card(
+                      color: m.color.withValues(alpha: 0.15),
+                      margin: const EdgeInsets.only(bottom: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        side: BorderSide(color: m.color.withValues(alpha: 0.6)),
+                      ),
+                      child: ListTile(
+                        title: Text(m.nombre, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text("${s.horaInicio.toInt()}:00 - ${s.horaFin.toInt()}:00\nSalón: ${s.aula}"),
+                        onTap: () => _mostrarDetalles(m),
+                      ),
+                    );
+                  },
+                ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _mostrarDetalles(Materia m) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(m.nombre),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Maestro: ${m.maestro}"),
-              Text("Notas: ${m.notas}"),
-              const Divider(),
-              ...m.sesiones.map((s) => Text("${s.dia}: ${s.inicio.format(context)} a ${s.fin.format(context)} [${s.aula}]")),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cerrar")),
-          ElevatedButton(onPressed: () { Navigator.pop(context); _abrirFormularioCentrado(context, mParaEditar: m); }, child: const Text("Editar")),
-        ],
-      ),
-    );
-  }
-
-  void _abrirFormularioCentrado(BuildContext context, {Materia? mParaEditar}) {
-    Materia mForm = mParaEditar != null ? mParaEditar.clone() : Materia(
-      id: DateTime.now().toString(),
-      nombre: '',
-      color: Colors.primaries[Random().nextInt(Colors.primaries.length)],
-      sesiones: [],
-    );
-
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setST) {
-          return AlertDialog(
-            title: Text(mParaEditar == null ? "Nueva Materia" : "Editar Materia"),
-            content: SizedBox(
-              width: double.maxFinite,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: TextEditingController(text: mForm.nombre)..selection = TextSelection.collapsed(offset: mForm.nombre.length),
-                      decoration: const InputDecoration(labelText: "Nombre"),
-                      onChanged: (v) => mForm.nombre = v,
-                    ),
-                    TextField(
-                      controller: TextEditingController(text: mForm.maestro)..selection = TextSelection.collapsed(offset: mForm.maestro.length),
-                      decoration: const InputDecoration(labelText: "Maestro"),
-                      onChanged: (v) => mForm.maestro = v,
-                    ),
-                    TextField(
-                      controller: TextEditingController(text: mForm.notas)..selection = TextSelection.collapsed(offset: mForm.notas.length),
-                      decoration: const InputDecoration(labelText: "Notas"),
-                      onChanged: (v) => mForm.notas = v,
-                    ),
-                    const SizedBox(height: 10),
-                    _buildColorPicker(mForm, setST),
-                    const Divider(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text("Horarios"),
-                        IconButton(icon: const Icon(Icons.add_circle), onPressed: () => setST(() => mForm.sesiones.add(Sesion(dia: 'Lunes', inicio: TimeOfDay.now(), fin: TimeOfDay.now(), aula: '')))),
-                      ],
-                    ),
-                    ...mForm.sesiones.asMap().entries.map((e) => _buildSesionEdit(e.value, e.key, mForm, setST)),
-                  ],
-                ),
-              ),
-            ),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancelar")),
-              ElevatedButton(onPressed: () { if (mForm.nombre.isNotEmpty) { _guardarMateria(mForm); Navigator.pop(context); } }, child: const Text("Guardar")),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildColorPicker(Materia m, StateSetter setST) {
-    List<Color> colors = [Colors.red, Colors.blue, Colors.green, Colors.orange, Colors.purple, Colors.teal];
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: colors.map((c) => GestureDetector(
-        onTap: () => setST(() => m.color = c),
-        child: Container(
-          margin: const EdgeInsets.all(4),
-          width: 25, height: 25,
-          decoration: BoxDecoration(color: c, shape: BoxShape.circle, border: m.color.value == c.value ? Border.all(color: Colors.white, width: 2) : null),
-        ),
-      )).toList(),
-    );
-  }
-
-  Widget _buildSesionEdit(Sesion s, int i, Materia m, StateSetter setST) {
-    return Column(
-      children: [
-        Row(
+        backgroundColor: const Color(0xFF1A1B36),
+        title: Text(m.nombre, style: TextStyle(color: m.color, fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(child: DropdownButton<String>(
-              value: s.dia,
-              items: ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"].map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
-              onChanged: (v) => setST(() => s.dia = v!),
-            )),
-            IconButton(icon: const Icon(Icons.delete, size: 20), onPressed: () => setST(() => m.sesiones.removeAt(i))),
+            Text("Docente: ${m.maestro}"),
+            const SizedBox(height: 10),
+            ...m.sesiones.map((s) => Text("• ${s.dia}: ${s.horaInicio.toInt()}:00 - ${s.horaFin.toInt()}:00 (${s.aula})")),
           ],
         ),
-        Row(
-          children: [
-            TextButton(child: Text(s.inicio.format(context)), onPressed: () async { var t = await showTimePicker(context: context, initialTime: s.inicio); if (t != null) setST(() => s.inicio = t); }),
-            const Text("-"),
-            TextButton(child: Text(s.fin.format(context)), onPressed: () async { var t = await showTimePicker(context: context, initialTime: s.fin); if (t != null) setST(() => s.fin = t); }),
-            Expanded(child: TextField(decoration: const InputDecoration(hintText: "Aula"), onChanged: (v) => s.aula = v)),
-          ],
-        ),
-        const Divider(),
-      ],
+        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cerrar"))],
+      ),
     );
   }
 }
