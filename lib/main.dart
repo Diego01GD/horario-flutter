@@ -44,7 +44,7 @@ class PantallaPrincipal extends StatefulWidget {
 
 class _PantallaPrincipalState extends State<PantallaPrincipal> {
   final double altoHora = 80.0; 
-  final double anchoDia = 150.0; // Ancho optimizado para legibilidad móvil
+  final double anchoDia = 150.0;
   final double anchoHoraCol = 65.0;
   final int horaInicioTabla = 7; 
   final int totalHoras = 13; 
@@ -58,7 +58,6 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
   @override
   void initState() {
     super.initState();
-    // Inicializar controlador en el día actual (si es fin de semana, por defecto Lunes)
     int initialPage = DateTime.now().weekday - 1;
     if (initialPage > 4) initialPage = 0;
     _pageController = PageController(initialPage: initialPage);
@@ -153,7 +152,6 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     );
   }
 
-  // --- VISTA SEMANAL ---
   Widget _buildVistaSemanal() {
     return InteractiveViewer(
       constrained: false,
@@ -267,7 +265,6 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     return lista;
   }
 
-  // --- VISTA DIARIA CON SWIPE ---
   Widget _buildVistaDiariaSwipe() {
     return PageView.builder(
       controller: _pageController,
